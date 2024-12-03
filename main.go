@@ -9,6 +9,7 @@ import (
 	"image/gif"
 	"image/jpeg"
 	"image/png"
+	"io"
 	"log/slog"
 	"os"
 	"path/filepath"
@@ -95,9 +96,11 @@ func (c Color) MarshalFlag() (string, error) {
 
 type Options struct {
 	// Input is the name of the input file.
-	Input flags.Filename `short:"i" long:"input" description:"Name of the input file." required:"true"`
+	Input flags.Filename `short:"i" long:"input" description:"The Name of the input file (default: STDIN)." optional:"true" default:"-"`
 	// Output is the name of the output file.
-	Output flags.Filename `short:"o" long:"output" description:"Name of the output file." required:"true"`
+	Output flags.Filename `short:"o" long:"output" description:"Name of the output file (default: STDOUT)." optional:"true" default:"-"`
+	// Format is the output format, if an output filename is not specified; it is used for chaining.
+	Format string `short:"F" long:"format" description:"Format of the output image." optional:"true" choice:"jpeg" choice:"jpg" choice:"png" choice:"gif" choice:"bmp" default:"png"`
 	// Text is the text to write as an overlay to the image.
 	Text string `short:"t" long:"text" description:"The text to add as an overly to the given image." default:"hallo, world!"`
 	// Point is the position in the image where the text will start.
@@ -122,36 +125,83 @@ func main() {
 		switch flagsErr := err.(type) {
 		case flags.ErrorType:
 			if flagsErr == flags.ErrHelp {
+				fmt.Println("here 0")
 				os.Exit(0)
 			}
 			os.Exit(1)
 		default:
+			fmt.Printf("here 1: %v\n", err)
 			os.Exit(1)
 		}
 	}
 
-	slog.Debug("running with options", "options", options)
+	fmt.Println("here 2")
 
-	slog.Debug("opening input file", "filename", options.Input)
+	slog.Debug("start running...", "options", options)
 
-	// open the image file
-	imgFile, err := os.Open(string(options.Input))
-	if err != nil {
-		slog.Error("error opening input file", "name", options.Input, "error", err)
-		os.Exit(1)
+	var (
+		input  io.Reader
+		output io.Writer
+	)
+	if options.Input == "-" {
+		slog.Debug("getting image from STDIN")
+		input = os.Stdin
+	} else {
+		// open the image file
+		slog.Debug("reading input from file", "name", options.Input)
+		var err error
+		if input, err = os.Open(string(options.Input)); err != nil {
+			slog.Error("error opening input file", "name", options.Input, "error", err)
+			os.Exit(1)
+		}
+		if input, ok := input.(io.ReadCloser); ok {
+			slog.Debug("input needs to be closed at application shutdown", "name", options.Input)
+			defer input.Close()
+		}
 	}
-	defer imgFile.Close()
 
-	slog.Debug("input file open", "filename", options.Input)
+	if options.Output == "-" {
+		slog.Debug("writing image to STDOUT", "format", options.Format)
+		output = os.Stdout
+	} else {
+		switch strings.ToLower(filepath.Ext(string(options.Output))) {
+		case ".jpg", ".jpeg":
+			options.Format = "jpg"
+		case ".png":
+			options.Format = "png"
+		case ".gif":
+			options.Format = "gif"
+		case ".bmp":
+			options.Format = "bmp"
+		default:
+			fmt.Fprintf(os.Stderr, "Unsupported output file type: %s\n", filepath.Ext(string(options.Output)))
+			slog.Error("unsupported output image type", "name", options.Output)
+			os.Exit(1)
+		}
+		slog.Debug("writing output to file", "name", options.Output, "format", options.Format)
+
+		// open the output file
+		var err error
+		if output, err = os.Create(string(options.Output)); err != nil {
+			slog.Error("error opening output file", "name", options.Output, "error", err)
+			os.Exit(1)
+		}
+		if output, ok := output.(io.WriteCloser); ok {
+			slog.Debug("output needs to be closed at application shutdown", "name", options.Output)
+			defer output.Close()
+		}
+	}
+
+	slog.Debug("streams ready")
 
 	// decode the image
-	img, _, err := image.Decode(imgFile)
+	img, _, err := image.Decode(input)
 	if err != nil {
-		slog.Error("error decoding input file", "name", options.Input, "error", err)
+		slog.Error("error decoding input data", "name", options.Input, "error", err)
 		os.Exit(1)
 	}
 
-	slog.Debug("image decoded", "filename", options.Input, "width", img.Bounds().Dx(), "height", img.Bounds().Dy())
+	slog.Debug("image decoded", "name", options.Input, "width", img.Bounds().Dx(), "height", img.Bounds().Dy())
 
 	// create a new image with the same dimensions as the original
 	dst := image.NewRGBA(img.Bounds())
@@ -201,45 +251,35 @@ func main() {
 	}
 	d.DrawString(options.Text)
 
-	// encode the image as JPEG
-	out, err := os.Create(string(options.Output))
-	if err != nil {
-		slog.Error("error opening output file", "name", options.Output, "error", err)
-		os.Exit(1)
-
-	}
-	defer out.Close()
-
-	switch strings.ToLower(filepath.Ext(string(options.Input))) {
-	case ".jpg", ".jpeg":
+	switch options.Format {
+	case "jpg", "jpeg":
 		slog.Debug("encoding output file as JPEG", "name", options.Output)
-		if err = jpeg.Encode(out, dst, nil); err != nil {
-			slog.Error("error encoding output file", "name", options.Output, "error", err)
+		if err = jpeg.Encode(output, dst, nil); err != nil {
+			slog.Error("error encoding output file", "name", options.Output, "error", err, "format", options.Format)
 			os.Exit(1)
 		}
-	case ".png":
+	case "png":
 		slog.Debug("encoding output file as PNG", "name", options.Output)
-		if err = png.Encode(out, dst); err != nil {
-			slog.Error("error encoding output file", "name", options.Output, "error", err)
+		if err = png.Encode(output, dst); err != nil {
+			slog.Error("error encoding output file", "name", options.Output, "error", err, "format", options.Format)
 			os.Exit(1)
 		}
-	case ".gif":
+	case "gif":
 		slog.Debug("encoding output file as GIF", "name", options.Output)
-		if err = gif.Encode(out, dst, nil); err != nil {
-			slog.Error("error encoding output file", "name", options.Output, "error", err)
+		if err = gif.Encode(output, dst, nil); err != nil {
+			slog.Error("error encoding output file", "name", options.Output, "error", err, "format", options.Format)
 			os.Exit(1)
 		}
-	case ".bmp":
+	case "bmp":
 		slog.Debug("encoding output file as BMP", "name", options.Output)
-		if err = bmp.Encode(out, dst); err != nil {
-			slog.Error("error encoding output file", "name", options.Output, "error", err)
+		if err = bmp.Encode(output, dst); err != nil {
+			slog.Error("error encoding output file", "name", options.Output, "error", err, "format", options.Format)
 			os.Exit(1)
 		}
 	default:
-		fmt.Fprintf(os.Stderr, "Unsupported input file type: %s\n", filepath.Ext(string(options.Input)))
-		slog.Error("unsupported input image type", "name", options.Input)
+		fmt.Fprintf(os.Stderr, "Unsupported output format: %s\n", options.Format)
+		slog.Error("unsupported output format", "name", options.Output, "format", options.Format)
 		os.Exit(1)
 	}
-
-	slog.Debug("image correctly encoded", "filename", options.Output)
+	slog.Debug("image correctly encoded", "filename", options.Output, "format", options.Format)
 }
