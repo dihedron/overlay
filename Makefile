@@ -24,3 +24,9 @@ include rules.mk
 .phony: test
 test: compile
 	@OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=650,100 --size=72 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --input=_test/test.jpg --output=dist/linux/amd64/out.png --text="HALLO, WORLD!"
+
+.phony: test-pipe
+test-pipe: compile
+	@cat _test/test.jpg | \
+	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=600,100 --size=72 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --format=png --text="HALLO, WORLD..." | \
+	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=700,160 --size=48 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --output=dist/linux/amd64/out.png --text="... from me!"

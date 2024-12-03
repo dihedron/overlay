@@ -125,17 +125,14 @@ func main() {
 		switch flagsErr := err.(type) {
 		case flags.ErrorType:
 			if flagsErr == flags.ErrHelp {
-				fmt.Println("here 0")
 				os.Exit(0)
 			}
 			os.Exit(1)
 		default:
-			fmt.Printf("here 1: %v\n", err)
+			fmt.Fprintf(os.Stderr, "%v\n", err)
 			os.Exit(1)
 		}
 	}
-
-	fmt.Println("here 2")
 
 	slog.Debug("start running...", "options", options)
 
