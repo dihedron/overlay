@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/dihedron/overlay/version"
 	"github.com/jessevdk/go-flags"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/font"
@@ -53,40 +54,110 @@ func (p Point) MarshalFlag() (string, error) {
 type Color color.RGBA
 
 func (c *Color) UnmarshalFlag(value string) error {
-	if len(value) != 7 || value[0] != '#' {
-		c.R = 0
-		c.G = 0
-		c.B = 0
-		c.A = 0
+	if len(value) > 0 && value[0] != '#' {
 		return fmt.Errorf("invalid color string format")
 	}
 
-	//c.A = 127
-	c.A = 255
+	switch len(value) {
+	case 4: // #RGB
 
-	if r, err := strconv.ParseUint(value[1:3], 16, 8); err != nil {
-		return err
-	} else {
-		c.R = uint8(r)
+		if r, err := strconv.ParseUint(value[1:2], 16, 8); err != nil {
+			return err
+		} else {
+			c.R = uint8(r)
+		}
+
+		if g, err := strconv.ParseUint(value[2:3], 16, 8); err != nil {
+			return err
+		} else {
+			c.G = uint8(g)
+		}
+
+		if b, err := strconv.ParseUint(value[3:4], 16, 8); err != nil {
+			return err
+		} else {
+			c.B = uint8(b)
+		}
+
+		c.A = 255
+
+	case 5: // #RGBA
+
+		if r, err := strconv.ParseUint(value[1:2], 16, 8); err != nil {
+			return err
+		} else {
+			c.R = uint8(r)
+		}
+
+		if g, err := strconv.ParseUint(value[2:3], 16, 8); err != nil {
+			return err
+		} else {
+			c.G = uint8(g)
+		}
+
+		if b, err := strconv.ParseUint(value[3:4], 16, 8); err != nil {
+			return err
+		} else {
+			c.B = uint8(b)
+		}
+
+		if a, err := strconv.ParseUint(value[4:5], 16, 8); err != nil {
+			return err
+		} else {
+			c.A = uint8(a)
+		}
+
+	case 7: // #RRGGBB
+
+		if r, err := strconv.ParseUint(value[1:3], 16, 8); err != nil {
+			return err
+		} else {
+			c.R = uint8(r)
+		}
+
+		if g, err := strconv.ParseUint(value[3:5], 16, 8); err != nil {
+			return err
+		} else {
+			c.G = uint8(g)
+		}
+
+		if b, err := strconv.ParseUint(value[5:7], 16, 8); err != nil {
+			return err
+		} else {
+			c.B = uint8(b)
+		}
+
+		c.A = 255
+
+	case 9: // #RRGGBBAA
+
+		if r, err := strconv.ParseUint(value[1:3], 16, 8); err != nil {
+			return err
+		} else {
+			c.R = uint8(r)
+		}
+
+		if g, err := strconv.ParseUint(value[3:5], 16, 8); err != nil {
+			return err
+		} else {
+			c.G = uint8(g)
+		}
+
+		if b, err := strconv.ParseUint(value[5:7], 16, 8); err != nil {
+			return err
+		} else {
+			c.B = uint8(b)
+		}
+
+		if a, err := strconv.ParseUint(value[7:9], 16, 8); err != nil {
+			return err
+		} else {
+			c.A = uint8(a)
+		}
+	default:
+		return fmt.Errorf("invalid color string format ")
 	}
-
-	if g, err := strconv.ParseUint(value[3:5], 16, 8); err != nil {
-		return err
-	} else {
-		c.G = uint8(g)
-	}
-
-	if b, err := strconv.ParseUint(value[5:7], 16, 8); err != nil {
-		return err
-	} else {
-		c.B = uint8(b)
-	}
-
-	// if a, err := strconv.ParseUint(value[7:], 16, 8); err != nil {
-	// 	return err
-	// } else {
-	// 	c.A = uint8(a)
-	// }
+	slog.Debug("parsed color", "red", c.R, "green", c.G, "blue", c.B, "alpha", c.A)
 	return nil
 }
 
@@ -116,6 +187,11 @@ type Options struct {
 }
 
 func main() {
+
+	if len(os.Args) == 2 && os.Args[1] == "--version" {
+		version.Print(os.Stdout)
+		os.Exit(0)
+	}
 
 	var options Options
 

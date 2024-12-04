@@ -1,5 +1,5 @@
 NAME := overlay
-DESCRIPTION := Simple tool to write text on top of an image.
+DESCRIPTION := A simple tool to write text on top of an image.
 COPYRIGHT := 2024 © Andrea Funtò
 LICENSE := MIT
 LICENSE_URL := https://opensource.org/license/mit/
@@ -28,5 +28,5 @@ test: compile
 .phony: test-pipe
 test-pipe: compile
 	@cat _test/test.jpg | \
-	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=600,100 --size=72 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --format=png --text="HALLO, WORLD..." | \
-	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=700,160 --size=48 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --output=dist/linux/amd64/out.png --text="... from me!"
+	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=600,100 --size=72 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#FFFFFF --format=jpg --text="HALLO, WORLD..." | \
+	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=700,160 --size=48 --font=${HOME}/.fonts/Economica/Economica-Regular.ttf --color=#00FF0033 --output=dist/linux/amd64/out.jpg --text="... from me!"
