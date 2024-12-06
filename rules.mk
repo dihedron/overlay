@@ -193,75 +193,78 @@ release: quality compile deb rpm apk
 
 %: ## replace % with one or more <goos>/<goarch> combinations, e.g. linux/amd64, to build it
 	@[ -t 1 ] && piped=0 || piped=1 ; echo "piped=$${piped}" > .piped
+	@echo
+	@echo -e "FLAGS:"
 ifeq ($(_RULES_MK_ENABLE_CGO),1)
-	@echo -e "tidy dependencies: $(green)enabled$(reset)"
+	@echo -e " - tidy dependencies: $(green)enabled$(reset)"
 	@go mod tidy
 else
-	@echo -e "tidy dependencies" $(yellow)disabled$(reset)""
+	@echo -e " - tidy dependencies" $(yellow)disabled$(reset)""
 endif
 ifeq ($(DOCKER),true)
 	$(eval cvsflags=-buildvcs=false)
 endif
 ifeq ($(_RULES_MK_ENABLE_GOGEN),1)
-	@echo -e "go generate      : $(green)enabled$(reset)"
+	@echo -e " - go generate      : $(green)enabled$(reset)"
 	@go generate ./...
 else
-	@echo -e "go generate      : $(yellow)disabled$(reset)"
+	@echo -e " - go generate      : $(yellow)disabled$(reset)"
 endif
 ifeq ($(_RULES_MK_ENABLE_CGO),1)
-	@echo -e "CGO dependencies : $(green)enabled$(reset)"
+	@echo -e " - CGO dependencies : $(green)enabled$(reset)"
 else
-	@echo -e "CGO dependencies : $(yellow)disabled$(reset)"
+	@echo -e " - CGO dependencies : $(yellow)disabled$(reset)"
 endif
 ifeq ($(_RULES_MK_ENABLE_NETGO),1)
-	@echo -e "network stack    : $(green)pure go$(reset)"
+	@echo -e " - network stack    : $(green)pure go$(reset)"
 else
-	@echo -e "network stack    : $(yellow)native$(reset)"
+	@echo -e " - network stack    : $(yellow)native$(reset)"
 endif
 ifeq ($(_RULES_MK_STRIP_SYMBOLS),1)
-	@echo -e "strip symbols    : $(yellow)yes$(reset)"
+	@echo -e " - strip symbols    : $(yellow)yes$(reset)"
 	$(eval strip_symbols=-s)
 else 
-	@echo -e "strip symbols    : $(green)no$(reset)"
+	@echo -e " - strip symbols    : $(green)no$(reset)"
 endif
 ifeq ($(_RULES_MK_STRIP_DBG_INFO),1)
-	@echo -e "strip debug info : $(yellow)yes$(reset)"
+	@echo -e " - strip debug info : $(yellow)yes$(reset)"
 	$(eval strip_dbg_info=-w)
 else 
-	@echo -e "strip debug info : $(green)no$(reset)"
+	@echo -e " - strip debug info : $(green)no$(reset)"
 endif
 ifeq ($(_RULES_MK_STRIP_SYMBOLS),1)
-	@echo -e "linking          : $(green)static$(reset)"
+	@echo -e " - linking          : $(green)static$(reset)"
 	$(eval strip_symbols=-s)
 endif
 ifeq ($(_RULES_MK_ENABLE_CGO),1)
 	$(eval linkmode=-linkmode 'external')
 endif
 ifeq ($(_RULES_MK_STATIC_LINK),1)
-	@echo -e "linking          : $(green)static$(reset)"
+	@echo -e " - linking          : $(green)static$(reset)"
 	$(eval static=-extldflags '-static')
-ifeq ($(_RULES_MK_ENABLE_CGO),1)
-	$(eval linkmode=-linkmode 'external')
-endif
+	ifeq ($(_RULES_MK_ENABLE_CGO),1)
+		$(eval linkmode=-linkmode 'external')
+	endif
 else
-	@echo -e "linking          : $(yellow)dynamic$(reset)"
+	@echo -e " - linking          : $(yellow)dynamic$(reset)"
 endif
 ifeq ($(_RULES_MK_FORCE_DEP_REBUILD),1)
-	@echo -e "build cache      : $(yellow)disabled$(reset)"
+	@echo -e " - build cache      : $(yellow)disabled$(reset)"
 	$(eval recompile=-a)
 else
-	@echo -e "build cache      : $(green)enabled$(reset)"
+	@echo -e " - build cache      : $(green)enabled$(reset)"
 endif
 ifeq ($(_RULES_MK_ENABLE_RACE),1)
-	@echo -e "race detector    : $(green)enabled$(reset)"
+	@echo -e " - race detector    : $(green)enabled$(reset)"
 	$(eval race=-race)
 else
-	@echo -e "race detector    : $(yellow)disabled$(reset)"
+	@echo -e " - race detector    : $(yellow)disabled$(reset)"
 endif
-	@echo -e "metadata package : $(green)$(package)$(reset)"
+	@echo -e " - metadata package : $(green)$(package)$(reset)"
 	@for platform in "$(platforms)"; do \
 		if test "$(@)" = "$$platform"; then \
-			echo -e "target platform  : $(green)$(@)$(reset)"; \
+			echo -e "PLATFORM: $(green)$(@)$(reset)"; \
+			echo -e "PACKAGES:"; \
 			mkdir -p dist/$(@); \
 			GOOS=$(shell echo $(@) | cut -d "/" -f 1) \
 			GOARCH=$(shell echo $(@) | cut -d "/" -f 2) \
@@ -272,7 +275,8 @@ endif
 			$(race) \
 			$(recompile) \
 			-ldflags="\
-			$(strip_dbg_info) $(strip_symbols) \
+			$(strip_dbg_info) \
+			$(strip_symbols) \
 			$(linkmode) \
 			$(static) \
 			-X '$(package).Name=$(NAME)' \
@@ -284,8 +288,7 @@ endif
 			-X '$(package).VersionMajor=$(VERSION_MAJOR)' \
 			-X '$(package).VersionMinor=$(VERSION_MINOR)' \
 			-X '$(package).VersionPatch=$(VERSION_PATCH)'" \
-			-o dist/$(@)/ .;\
-			echo ...done!; \
+			-o dist/$(@)/ . && echo -e "RESULT: $(green)OK$(reset)" || echo -e "RESULT: $(red)KO$(reset)";\
 		fi; \
 	done
 	@rm -f .piped
