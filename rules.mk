@@ -39,7 +39,7 @@ _RULES_MK_TIDY_DEPS ?= 1
 _RULES_MK_ENABLE_CGO ?= 1
 _RULES_MK_ENABLE_GOGEN ?= 1
 _RULES_MK_ENABLE_RACE ?= 1
-_RULES_MK_STATIC_LINK ?= 1
+_RULES_MK_STATIC_LINK ?= 0
 _RULES_MK_ENABLE_NETGO ?= 0
 _RULES_MK_STRIP_SYMBOLS ?= 0
 _RULES_MK_STRIP_DBG_INFO =? 0
@@ -242,9 +242,9 @@ endif
 ifeq ($(_RULES_MK_STATIC_LINK),1)
 	@echo -e " - linking          : $(green)static$(reset)"
 	$(eval static=-extldflags '-static')
-	ifeq ($(_RULES_MK_ENABLE_CGO),1)
-		$(eval linkmode=-linkmode 'external')
-	endif
+ifeq ($(_RULES_MK_ENABLE_CGO),1)
+	$(eval linkmode=-linkmode 'external')
+endif
 else
 	@echo -e " - linking          : $(yellow)dynamic$(reset)"
 endif
