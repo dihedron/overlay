@@ -6,8 +6,29 @@ import (
 	"log/slog"
 	"os"
 	"path"
+	"runtime"
+	"runtime/pprof"
 	"strings"
 )
+
+var (
+	cpuprof *os.File
+	memprof *os.File
+)
+
+func cleanup() {
+	if cpuprof != nil {
+		defer cpuprof.Close()
+		defer pprof.StopCPUProfile()
+	}
+	if memprof != nil {
+		defer memprof.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(memprof); err != nil {
+			slog.Error("could not write memory profile", "error", err)
+		}
+	}
+}
 
 func init() {
 	const LevelNone = slog.Level(1000)
@@ -46,39 +67,81 @@ func init() {
 		}
 	}
 
+	// my-app -> MY_APP_LOG_STREAM
 	var writer io.Writer = os.Stderr
-	/*
-		// my-app -> MY_APP_LOG_STREAM
-
-		stream, ok := os.LookupEnv(
-			fmt.Sprintf(
-				"%s_LOG_STREAM",
-				strings.ReplaceAll(
-					strings.ToUpper(
-						path.Base(os.Args[0]),
-					),
-					"-",
-					"_",
+	stream, ok := os.LookupEnv(
+		fmt.Sprintf(
+			"%s_LOG_STREAM",
+			strings.ReplaceAll(
+				strings.ToUpper(
+					path.Base(os.Args[0]),
 				),
+				"-",
+				"_",
 			),
-		)
-		if ok {
-			switch strings.ToLower(stream) {
-			case "stderr", "error", "err", "e":
+		),
+	)
+	if ok {
+		switch strings.ToLower(stream) {
+		case "stderr", "error", "err", "e":
+			writer = os.Stderr
+		case "stdout", "output", "out", "o":
+			writer = os.Stdout
+		case "file":
+			filename := fmt.Sprintf("%s-%d.log", path.Base(os.Args[0]), os.Getpid())
+			var err error
+			writer, err = os.Create(filename)
+			if err != nil {
 				writer = os.Stderr
-			case "stdout", "output", "out", "o":
-				writer = os.Stdout
-			default:
-				// fmt.Printf("opening file: %s\n", stream)
-				var err error
-				writer, err = os.Create(stream)
-				if err != nil {
-					writer = os.Stderr
-				}
 			}
 		}
+	}
 
-	*/
 	handler := slog.NewTextHandler(writer, options)
 	slog.SetDefault(slog.New(handler))
+
+	// check if CPU profiling should be enabled
+	filename, ok := os.LookupEnv(
+		fmt.Sprintf(
+			"%s_CPU_PROFILE",
+			strings.ReplaceAll(
+				strings.ToUpper(
+					path.Base(os.Args[0]),
+				),
+				"-",
+				"_",
+			),
+		),
+	)
+	if ok && filename != "" {
+		f, err := os.Create(filename)
+		if err != nil {
+			slog.Error("could not create CPU profile", "error", err)
+		}
+		cpuprof = f
+		if err := pprof.StartCPUProfile(f); err != nil {
+			slog.Error("could not start CPU profile", "error", err)
+		}
+	}
+
+	// check if CPU profiling should be enabled
+	filename, ok = os.LookupEnv(
+		fmt.Sprintf(
+			"%s_MEM_PROFILE",
+			strings.ReplaceAll(
+				strings.ToUpper(
+					path.Base(os.Args[0]),
+				),
+				"-",
+				"_",
+			),
+		),
+	)
+	if ok && filename != "" {
+		f, err := os.Create(filename)
+		if err != nil {
+			slog.Error("could not create memory profile", "error", err)
+		}
+		memprof = f
+	}
 }

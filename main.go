@@ -16,7 +16,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/dihedron/overlay/version"
+	"github.com/dihedron/overlay/metadata"
 	"github.com/jessevdk/go-flags"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/font"
@@ -167,11 +167,11 @@ func (c Color) MarshalFlag() (string, error) {
 
 type Options struct {
 	// Input is the name of the input file.
-	Input flags.Filename `short:"i" long:"input" description:"The Name of the input file (default: STDIN)." optional:"true" default:"-"`
+	Input flags.Filename `short:"i" long:"input" description:"The name of the input file or - for STDIN." optional:"true" default:"-"`
 	// Output is the name of the output file.
-	Output flags.Filename `short:"o" long:"output" description:"Name of the output file (default: STDOUT)." optional:"true" default:"-"`
+	Output flags.Filename `short:"o" long:"output" description:"The name of the output file or . for STDOUT." optional:"true" default:"-"`
 	// Format is the output format, if an output filename is not specified; it is used for chaining.
-	Format string `short:"F" long:"format" description:"Format of the output image." optional:"true" choice:"jpeg" choice:"jpg" choice:"png" choice:"gif" choice:"bmp" default:"png"`
+	Format string `short:"x" long:"format" description:"Format of the output image." optional:"true" choice:"jpeg" choice:"jpg" choice:"png" choice:"gif" choice:"bmp" default:"png"`
 	// Text is the text to write as an overlay to the image.
 	Text string `short:"t" long:"text" description:"The text to add as an overly to the given image." default:"hallo, world!"`
 	// Point is the position in the image where the text will start.
@@ -188,10 +188,14 @@ type Options struct {
 
 func main() {
 
-	if len(os.Args) == 2 && os.Args[1] == "--version" {
-		version.Print(os.Stdout)
+	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
+		metadata.Print(os.Stdout)
+		os.Exit(0)
+	} else if len(os.Args) == 3 && os.Args[1] == "version" && (os.Args[2] == "--verbose" || os.Args[2] == "-v") {
+		metadata.PrintFull(os.Stdout)
 		os.Exit(0)
 	}
+
 
 	var options Options
 

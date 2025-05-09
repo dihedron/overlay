@@ -53,7 +53,7 @@ Check the `Makefile`'s `test` and `test-pipeline` targets to check how to run th
 $> 	cat input.jpg | overlay --point=600,100 --size=72 --font=Economica-Regular.ttf --color=#FFFFFF --format=jpg --text="HALLO, WORLD..." | overlay --point=700,160 --size=48 --font=Economica-Regular.ttf --color=#00FF0033  --text="... from me!" --output=output.jpg
 ```
 
-The application can be used to convert the image from one format to the other; when the input image is on the filesystem, the extension is used to automatically detect the image format; when the image is piped into the command, it is necessary to specify the (input) format via the `--format` flag. 
+The application can be used to convert the image from one format to the other; the input image is automatically detected; when the tools' output is piped (into a file or a subsequent instance of the tool itself) it is necessary to specify the (output) format via the `--format` flag. 
 
 
 ## Licenses
