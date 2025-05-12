@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"image"
 	"image/color"
@@ -13,178 +12,16 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
-	"strconv"
 	"strings"
 
 	"github.com/dihedron/overlay/metadata"
 	"github.com/jessevdk/go-flags"
 	"golang.org/x/image/bmp"
 	"golang.org/x/image/font"
+	"golang.org/x/image/font/gofont/goregular"
 	"golang.org/x/image/font/opentype"
 	"golang.org/x/image/math/fixed"
 )
-
-type Point struct {
-	X, Y int
-}
-
-func (p *Point) UnmarshalFlag(value string) error {
-	parts := strings.Split(value, ",")
-
-	if len(parts) != 2 {
-		return errors.New("invalid format: expected two numbers separated by a ,")
-	}
-	x, err := strconv.ParseInt(parts[0], 10, 32)
-	if err != nil {
-		return err
-	}
-	y, err := strconv.ParseInt(parts[1], 10, 32)
-	if err != nil {
-		return err
-	}
-	p.X = int(x)
-	p.Y = int(y)
-	return nil
-}
-
-func (p Point) MarshalFlag() (string, error) {
-	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
-}
-
-type Color color.RGBA
-
-func (c *Color) UnmarshalFlag(value string) error {
-	if len(value) > 0 && value[0] != '#' {
-		return fmt.Errorf("invalid color string format")
-	}
-
-	switch len(value) {
-	case 4: // #RGB
-
-		if r, err := strconv.ParseUint(value[1:2], 16, 8); err != nil {
-			return err
-		} else {
-			c.R = uint8(r)
-		}
-
-		if g, err := strconv.ParseUint(value[2:3], 16, 8); err != nil {
-			return err
-		} else {
-			c.G = uint8(g)
-		}
-
-		if b, err := strconv.ParseUint(value[3:4], 16, 8); err != nil {
-			return err
-		} else {
-			c.B = uint8(b)
-		}
-
-		c.A = 255
-
-	case 5: // #RGBA
-
-		if r, err := strconv.ParseUint(value[1:2], 16, 8); err != nil {
-			return err
-		} else {
-			c.R = uint8(r)
-		}
-
-		if g, err := strconv.ParseUint(value[2:3], 16, 8); err != nil {
-			return err
-		} else {
-			c.G = uint8(g)
-		}
-
-		if b, err := strconv.ParseUint(value[3:4], 16, 8); err != nil {
-			return err
-		} else {
-			c.B = uint8(b)
-		}
-
-		if a, err := strconv.ParseUint(value[4:5], 16, 8); err != nil {
-			return err
-		} else {
-			c.A = uint8(a)
-		}
-
-	case 7: // #RRGGBB
-
-		if r, err := strconv.ParseUint(value[1:3], 16, 8); err != nil {
-			return err
-		} else {
-			c.R = uint8(r)
-		}
-
-		if g, err := strconv.ParseUint(value[3:5], 16, 8); err != nil {
-			return err
-		} else {
-			c.G = uint8(g)
-		}
-
-		if b, err := strconv.ParseUint(value[5:7], 16, 8); err != nil {
-			return err
-		} else {
-			c.B = uint8(b)
-		}
-
-		c.A = 255
-
-	case 9: // #RRGGBBAA
-
-		if r, err := strconv.ParseUint(value[1:3], 16, 8); err != nil {
-			return err
-		} else {
-			c.R = uint8(r)
-		}
-
-		if g, err := strconv.ParseUint(value[3:5], 16, 8); err != nil {
-			return err
-		} else {
-			c.G = uint8(g)
-		}
-
-		if b, err := strconv.ParseUint(value[5:7], 16, 8); err != nil {
-			return err
-		} else {
-			c.B = uint8(b)
-		}
-
-		if a, err := strconv.ParseUint(value[7:9], 16, 8); err != nil {
-			return err
-		} else {
-			c.A = uint8(a)
-		}
-	default:
-		return fmt.Errorf("invalid color string format ")
-	}
-	slog.Debug("parsed color", "red", c.R, "green", c.G, "blue", c.B, "alpha", c.A)
-	return nil
-}
-
-func (c Color) MarshalFlag() (string, error) {
-	return fmt.Sprintf("#%02X%02X%02X", c.R, c.G, c.B), nil
-}
-
-type Options struct {
-	// Input is the name of the input file.
-	Input flags.Filename `short:"i" long:"input" description:"The name of the input file or - for STDIN." optional:"true" default:"-"`
-	// Output is the name of the output file.
-	Output flags.Filename `short:"o" long:"output" description:"The name of the output file or . for STDOUT." optional:"true" default:"-"`
-	// Format is the output format, if an output filename is not specified; it is used for chaining.
-	Format string `short:"x" long:"format" description:"Format of the output image." optional:"true" choice:"jpeg" choice:"jpg" choice:"png" choice:"gif" choice:"bmp" default:"png"`
-	// Text is the text to write as an overlay to the image.
-	Text string `short:"t" long:"text" description:"The text to add as an overly to the given image." default:"hallo, world!"`
-	// Point is the position in the image where the text will start.
-	Point Point `short:"p" long:"point" description:"The coordinates where the text will be written, as an (x,y) point." required:"true"`
-	// Font is the font to use for writing to the image.
-	Font flags.Filename `short:"f" long:"font" description:"The name of the font to be used for writing." required:"true"`
-	// Font is the font to use for writing to the image.
-	Color Color `short:"c" long:"color" description:"The color of the font to be used for writing." optional:"true" default:"#000000"`
-	// Size is the size of font to use for writing to the image.
-	Size float64 `short:"s" long:"size" description:"The size of the font to be used for writing." required:"true"`
-	// DPI is the image resolution in Dots Per Inch.
-	DPI float64 `short:"d" long:"dpi" description:"The image resolution in DPI (Dots Per Inch)." optional:"true" default:"72"`
-}
 
 func main() {
 
@@ -195,7 +32,6 @@ func main() {
 		metadata.PrintFull(os.Stdout)
 		os.Exit(0)
 	}
-
 
 	var options Options
 
@@ -216,6 +52,19 @@ func main() {
 
 	slog.Debug("start running...", "options", options)
 
+	// validate overlay mode: ony one of image and text is allowed
+	if options.Text == "" && options.Image == "" {
+		fmt.Fprintf(os.Stderr, "No text or image specified to overlay on the image\n")
+		slog.Error("no text or image specified to overlay on the image")
+		os.Exit(1)
+	}
+	if options.Text != "" && options.Image != "" {
+		fmt.Fprintf(os.Stderr, "Both text and image specified to overlay on the image\n")
+		slog.Error("both text and image specified to overlay on the image")
+		os.Exit(1)
+	}
+
+	// open the input and output streams
 	var (
 		input  io.Reader
 		output io.Writer
@@ -224,7 +73,7 @@ func main() {
 		slog.Debug("getting image from STDIN")
 		input = os.Stdin
 	} else {
-		// open the image file
+		// open the underlay image file
 		slog.Debug("reading input from file", "name", options.Input)
 		var err error
 		if input, err = os.Open(string(options.Input)); err != nil {
@@ -271,62 +120,106 @@ func main() {
 
 	slog.Debug("streams ready")
 
-	// decode the image
-	img, _, err := image.Decode(input)
+	// decode the underlay image
+	underlay, _, err := image.Decode(input)
 	if err != nil {
-		slog.Error("error decoding input data", "name", options.Input, "error", err)
+		slog.Error("error decoding input data for underlay image", "name", options.Input, "error", err)
 		os.Exit(1)
 	}
-
-	slog.Debug("image decoded", "name", options.Input, "width", img.Bounds().Dx(), "height", img.Bounds().Dy())
+	slog.Debug("underlay image decoded", "name", options.Input, "width", underlay.Bounds().Dx(), "height", underlay.Bounds().Dy())
 
 	// create a new image with the same dimensions as the original
-	dst := image.NewRGBA(img.Bounds())
-	draw.Draw(dst, dst.Bounds(), img, image.Point{0, 0}, draw.Src)
+	dst := image.NewRGBA(underlay.Bounds())
+	draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
 
 	slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
 
-	// read the font data
-	fontData, err := os.ReadFile(string(options.Font))
-	if err != nil {
-		slog.Error("error reading font file", "name", options.Font, "error", err)
-		os.Exit(1)
+	// now, depending on the mode, overlay the text or the image
+	var f *opentype.Font
+	if options.Text != "" {
+		slog.Debug("overlaying text on the image", "text", options.Text)
+
+		if options.Font != "" {
+
+			// read the font data
+			fontData, err := os.ReadFile(string(options.Font))
+			if err != nil {
+				slog.Error("error reading font file", "name", options.Font, "error", err)
+				os.Exit(1)
+			}
+			slog.Debug("font data read", "filename", options.Font)
+
+			// parse the font data into a font
+			f, err = opentype.Parse(fontData)
+			if err != nil {
+				slog.Error("error parsing font data", "name", options.Font, "error", err)
+				os.Exit(1)
+			}
+
+		} else {
+			slog.Debug("using default font")
+			f, err = opentype.Parse(goregular.TTF)
+			if err != nil {
+				slog.Error("error parsing default font data", "name", options.Font, "error", err)
+				os.Exit(1)
+			}
+		}
+		slog.Debug("font parsed")
+
+		// create the font face
+		fontFace, err := opentype.NewFace(f, &opentype.FaceOptions{
+			Size:    float64(options.Size),
+			DPI:     options.DPI,
+			Hinting: font.HintingNone,
+		})
+		if err != nil {
+			slog.Error("error creating font face", "name", options.Font, "error", err)
+			os.Exit(1)
+		}
+
+		point := fixed.Point26_6{
+			X: fixed.I(options.Point.X),
+			Y: fixed.I(options.Point.Y),
+		}
+
+		d := &font.Drawer{
+			Dst:  dst,
+			Src:  image.NewUniform(color.RGBA(options.Color)),
+			Face: fontFace,
+			Dot:  point,
+		}
+		d.DrawString(options.Text)
+		slog.Debug("text overlayed on the image", "text", options.Text, "point", options.Point)
+	} else {
+		slog.Debug("overlaying image on the image", "image", options.Image)
+
+		// open the overlay image file
+		slog.Debug("reading overlay from file", "name", options.Image)
+		var (
+			err error
+			f   io.Reader
+		)
+		if f, err = os.Open(options.Image); err != nil {
+			slog.Error("error opening overlay image file", "name", options.Image, "error", err)
+			os.Exit(1)
+		}
+		if f, ok := f.(io.ReadCloser); ok {
+			slog.Debug("input needs to be closed at application shutdown", "name", options.Image)
+			defer f.Close()
+		}
+
+		// decode the overlay image
+		overlay, _, err := image.Decode(f)
+		if err != nil {
+			slog.Error("error decoding input data for overlay image", "name", options.Image, "error", err)
+			os.Exit(1)
+		}
+		slog.Debug("overlay image decoded", "name", options.Image, "width", overlay.Bounds().Dx(), "height", overlay.Bounds().Dy())
+
+		//offset := image.Pt(overlay.XPos, overlay.YPos)
+		//combine the image
+		draw.Draw(dst, overlay.Bounds().Add(image.Point(options.Point)), overlay, image.Point{0, 0}, draw.Over)
 	}
-
-	slog.Debug("font data read", "filename", options.Font)
-
-	// parse the font data into a font
-	f, err := opentype.Parse(fontData)
-	if err != nil {
-		slog.Error("error parsing font data", "name", options.Font, "error", err)
-		os.Exit(1)
-	}
-
-	slog.Debug("font parsed")
-
-	// create the font face
-	fontFace, err := opentype.NewFace(f, &opentype.FaceOptions{
-		Size:    float64(options.Size),
-		DPI:     options.DPI,
-		Hinting: font.HintingNone,
-	})
-	if err != nil {
-		slog.Error("error creating font face", "name", options.Font, "error", err)
-		os.Exit(1)
-	}
-
-	point := fixed.Point26_6{
-		X: fixed.I(options.Point.X),
-		Y: fixed.I(options.Point.Y),
-	}
-
-	d := &font.Drawer{
-		Dst:  dst,
-		Src:  image.NewUniform(color.RGBA(options.Color)),
-		Face: fontFace,
-		Dot:  point,
-	}
-	d.DrawString(options.Text)
 
 	switch options.Format {
 	case "jpg", "jpeg":
