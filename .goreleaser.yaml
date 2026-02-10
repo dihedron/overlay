@@ -131,11 +131,11 @@ nfpms:
       - apk
     ids:
       - overlay
-    contents:
-      - src: ./{{.ProjectName}}.conf
-        dst: /etc/{{.ProjectName}}.conf
-        type: config
-        expand: true
+#    contents:
+#      - src: ./{{.ProjectName}}.conf
+#        dst: /etc/{{.ProjectName}}.conf
+#        type: config
+#        expand: true
     scripts:
       postinstall: ./postinstall.sh
     epoch: "1"
