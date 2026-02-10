@@ -10,12 +10,22 @@ import (
 
 func main() {
 
-	if len(os.Args) == 2 && (os.Args[1] == "version" || os.Args[1] == "--version") {
-		metadata.Print(os.Stdout)
-		os.Exit(0)
-	} else if len(os.Args) == 3 && os.Args[1] == "version" && (os.Args[2] == "--verbose" || os.Args[2] == "-v") {
-		metadata.PrintFull(os.Stdout)
-		os.Exit(0)
+	defer cleanup()
+
+	if len(os.Args) >= 2 {
+		switch os.Args[1] {
+		case "version", "--version":
+			if len(os.Args) > 2 && (os.Args[2] == "--verbose" || os.Args[2] == "-v") {
+				metadata.PrintFull(os.Stdout)
+				os.Exit(0)
+			} else {
+				metadata.Print(os.Stdout)
+				os.Exit(0)
+			}
+		case "init", "--init":
+			fmt.Printf("generate configuration files\n")
+			os.Exit(0)
+		}
 	}
 
 	var command Command

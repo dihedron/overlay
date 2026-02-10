@@ -1,3 +1,3 @@
 #!/bin/sh
 
-# add your postr-install commands (run as root) here.
+# add your post-install commands (run as root) here.

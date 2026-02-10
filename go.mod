@@ -1,13 +1,14 @@
 module github.com/dihedron/overlay
 
-go 1.23.3
+go 1.24.0
 
 require (
 	github.com/jessevdk/go-flags v1.6.1
-	golang.org/x/image v0.27.0
+	github.com/joho/godotenv v1.5.1
+	golang.org/x/image v0.36.0
 )
 
 require (
-	golang.org/x/sys v0.33.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/sys v0.41.0 // indirect
+	golang.org/x/text v0.34.0 // indirect
 )
