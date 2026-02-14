@@ -50,16 +50,16 @@ new-revision-release: ## create a new revision release (e.g. v1.2.3 -> v1.2.4)
 
 .PHONY: test-text
 test-text: compile # overlay text on top of an image
-	@OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --color=#FFFFFF --input=_test/test.jpg --output=dist/linux/amd64/out.png --text="HALLO, WORLD!"
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.png --text="HALLO, WORLD!"
 
 .PHONY: test-image
 test-image: compile # overlay an image on top of an image
-	@OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=650,100 --input=_test/test.jpg --output=dist/linux/amd64/out.jpg --image=_test/apple.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay image --point=650,100 --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.jpg --image=_test/apple.png
 
 .PHONY: test-pipe
 test-pipe: compile # overlay images and text on top of an image
 	@cat _test/test.jpg | \
-	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=460,25 --image=_test/apple.png --format=jpg | \
-	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=600,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --color=#FFFFFF --format=jpg --text="HALLO, WORLD..." | \
-	OVERLAY_LOG_LEVEL=d dist/linux/amd64/overlay --point=700,160 --size=48 --font=_test/Economica/Economica-Regular.ttf --color=#00FF0033 --output=dist/linux/amd64/out.jpg --text="... from me!"
+	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay image --point=460,25 --image=_test/apple.png --format=jpg | \
+	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=600,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --format=jpg --text="HALLO, WORLD..." | \
+	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=700,160 --size=48 --font=_test/Economica/Economica-Regular.ttf --colour=#00FF0033 --output=dist/overlay_linux_amd64_v1/out.jpg --text="... from me!"
 
