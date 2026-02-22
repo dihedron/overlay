@@ -10,8 +10,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/dihedron/overlay/command/base"
 	"github.com/jessevdk/go-flags"
@@ -37,54 +35,31 @@ func (cmd *Image) Execute(args []string) error {
 	var (
 		input  io.Reader
 		output io.Writer
+		err    error
 	)
-	if cmd.Input == "-" {
-		slog.Debug("getting image from STDIN")
-		input = os.Stdin
-	} else {
-		// open the underlay image file
-		slog.Debug("reading input from file", "name", cmd.Input)
-		var err error
-		if input, err = os.Open(string(cmd.Input)); err != nil {
-			slog.Error("error opening input file", "name", cmd.Input, "error", err)
-			os.Exit(1)
-		}
-		if input, ok := input.(io.ReadCloser); ok {
-			slog.Debug("input needs to be closed at application shutdown", "name", cmd.Input)
-			defer input.Close()
-		}
+
+	// open the output stream
+	if output, err = cmd.OutputStream(); err != nil {
+		slog.Error("error opening output stream", "name", cmd.Output, "error", err)
+		return err
 	}
 
-	if cmd.Output == "-" {
-		slog.Debug("writing image to STDOUT", "format", cmd.Format)
-		output = os.Stdout
-	} else {
-		switch strings.ToLower(filepath.Ext(string(cmd.Output))) {
-		case ".jpg", ".jpeg":
-			cmd.Format = "jpg"
-		case ".png":
-			cmd.Format = "png"
-		case ".gif":
-			cmd.Format = "gif"
-		case ".bmp":
-			cmd.Format = "bmp"
-		default:
-			fmt.Fprintf(os.Stderr, "Unsupported output file type: %s\n", filepath.Ext(string(cmd.Output)))
-			slog.Error("unsupported output image type", "name", cmd.Output)
-			os.Exit(1)
-		}
-		slog.Debug("writing output to file", "name", cmd.Output, "format", cmd.Format)
+	// ensure the output stream is closed at application shutdown
+	if output, ok := output.(io.WriteCloser); ok {
+		slog.Debug("output needs to be closed at application shutdown", "name", cmd.Output)
+		defer output.Close()
+	}
 
-		// open the output file
-		var err error
-		if output, err = os.Create(string(cmd.Output)); err != nil {
-			slog.Error("error opening output file", "name", cmd.Output, "error", err)
-			os.Exit(1)
-		}
-		if output, ok := output.(io.WriteCloser); ok {
-			slog.Debug("output needs to be closed at application shutdown", "name", cmd.Output)
-			defer output.Close()
-		}
+	// open the input stream
+	if input, err = cmd.InputStream(); err != nil {
+		slog.Error("error opening input stream", "name", cmd.Input, "error", err)
+		return err
+	}
+
+	// ensure the input stream is closed at application shutdown
+	if input, ok := input.(io.ReadCloser); ok {
+		slog.Debug("input needs to be closed at application shutdown", "name", cmd.Input)
+		defer input.Close()
 	}
 
 	slog.Debug("streams ready")
@@ -172,4 +147,26 @@ func (cmd *Image) Execute(args []string) error {
 
 	slog.Debug("command done")
 	return nil
+}
+
+func (cmd *Image) InputStream() (io.Reader, error) {
+	// open the input stream
+	var (
+		input io.Reader
+		err   error
+	)
+
+	if cmd.Input == "-" {
+		slog.Debug("getting image from STDIN")
+		return os.Stdin, nil
+	}
+
+	// open the underlay image file
+	slog.Debug("reading input from file", "name", cmd.Input)
+	if input, err = os.Open(string(cmd.Input)); err != nil {
+		slog.Error("error opening input file", "name", cmd.Input, "error", err)
+		return nil, err
+	}
+
+	return input, nil
 }

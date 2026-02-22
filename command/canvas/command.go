@@ -11,8 +11,6 @@ import (
 	"io"
 	"log/slog"
 	"os"
-	"path/filepath"
-	"strings"
 
 	"github.com/dihedron/overlay/command/base"
 	"golang.org/x/image/bmp"
@@ -29,44 +27,24 @@ type Canvas struct {
 
 // Execute is the real implementation of the Canvas command.
 func (cmd *Canvas) Execute(args []string) error {
+	var (
+		output io.Writer
+		err    error
+	)
+
 	slog.Debug("running canvas command")
 
 	// open the output stream
-	var output io.Writer
-
-	if cmd.Output == "-" {
-		slog.Debug("writing image to STDOUT", "format", cmd.Format)
-		output = os.Stdout
-	} else {
-		switch strings.ToLower(filepath.Ext(string(cmd.Output))) {
-		case ".jpg", ".jpeg":
-			cmd.Format = "jpg"
-		case ".png":
-			cmd.Format = "png"
-		case ".gif":
-			cmd.Format = "gif"
-		case ".bmp":
-			cmd.Format = "bmp"
-		default:
-			fmt.Fprintf(os.Stderr, "Unsupported output file type: %s\n", filepath.Ext(string(cmd.Output)))
-			slog.Error("unsupported output image type", "name", cmd.Output)
-			os.Exit(1)
-		}
-		slog.Debug("writing output to file", "name", cmd.Output, "format", cmd.Format)
-
-		// open the output file
-		var err error
-		if output, err = os.Create(string(cmd.Output)); err != nil {
-			slog.Error("error opening output file", "name", cmd.Output, "error", err)
-			os.Exit(1)
-		}
-		if output, ok := output.(io.WriteCloser); ok {
-			slog.Debug("output needs to be closed at application shutdown", "name", cmd.Output)
-			defer output.Close()
-		}
+	if output, err = cmd.OutputStream(); err != nil {
+		slog.Error("error opening output stream", "name", cmd.Output, "error", err)
+		return err
 	}
 
-	slog.Debug("output stream ready")
+	// ensure the output stream is closed at application shutdown
+	if output, ok := output.(io.WriteCloser); ok {
+		slog.Debug("output needs to be closed at application shutdown", "name", cmd.Output)
+		defer output.Close()
+	}
 
 	// create a blank 600x400 RGBA image
 	img := image.NewRGBA(image.Rect(0, 0, cmd.Size.X, cmd.Size.Y))
@@ -78,37 +56,36 @@ func (cmd *Canvas) Execute(args []string) error {
 	draw.Draw(img, img.Bounds(), &image.Uniform{background}, image.Point{}, draw.Src)
 
 	// encode the output image
-	var err error
 	slog.Debug("encoding output image", "name", cmd.Output, "format", cmd.Format)
 	switch cmd.Format {
 	case "jpg", "jpeg":
 		slog.Debug("encoding output file as JPEG", "name", cmd.Output)
 		if err = jpeg.Encode(output, img, nil); err != nil {
 			slog.Error("error encoding output file", "name", cmd.Output, "error", err, "format", cmd.Format)
-			os.Exit(1)
+			return err
 		}
 	case "png":
 		slog.Debug("encoding output file as PNG", "name", cmd.Output)
 		if err = png.Encode(output, img); err != nil {
 			slog.Error("error encoding output file", "name", cmd.Output, "error", err, "format", cmd.Format)
-			os.Exit(1)
+			return err
 		}
 	case "gif":
 		slog.Debug("encoding output file as GIF", "name", cmd.Output)
 		if err = gif.Encode(output, img, nil); err != nil {
 			slog.Error("error encoding output file", "name", cmd.Output, "error", err, "format", cmd.Format)
-			os.Exit(1)
+			return err
 		}
 	case "bmp":
 		slog.Debug("encoding output file as BMP", "name", cmd.Output)
 		if err = bmp.Encode(output, img); err != nil {
 			slog.Error("error encoding output file", "name", cmd.Output, "error", err, "format", cmd.Format)
-			os.Exit(1)
+			return err
 		}
 	default:
 		fmt.Fprintf(os.Stderr, "Unsupported output format: %s\n", cmd.Format)
 		slog.Error("unsupported output format", "name", cmd.Output, "format", cmd.Format)
-		os.Exit(1)
+		return fmt.Errorf("unsupported output format: %s", cmd.Format)
 	}
 	slog.Debug("image correctly encoded", "filename", cmd.Output, "format", cmd.Format)
 
