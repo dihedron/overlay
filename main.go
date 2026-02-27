@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/dihedron/overlay/command"
@@ -17,6 +18,9 @@ func main() {
 			if flagsErr == flags.ErrHelp {
 				os.Exit(0)
 			}
+			os.Exit(1)
+		case *flags.Error:
+			fmt.Fprintf(os.Stderr, "error: %s (%T)\n", err, err)
 			os.Exit(1)
 		default:
 			os.Exit(1)

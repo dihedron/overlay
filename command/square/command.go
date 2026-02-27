@@ -20,7 +20,7 @@ type Square struct {
 	// Colour is the colour of the square to be written to the image.
 	Colour base.Colour `short:"c" long:"colour" description:"The colour of the square to be written to the image" optional:"true" default:"#000000"`
 	// Fill is whether the square should be filled with the given colour.
-	Fill bool `short:"f" long:"fill" description:"Whether the square should be filled with the given colour" optional:"true" default:"false"`
+	Fill bool `short:"f" long:"fill" description:"Whether the square should be filled with the given colour" optional:"true"`
 }
 
 // Execute is the real implementation of the Square command.

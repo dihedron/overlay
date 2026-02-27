@@ -22,7 +22,7 @@ type Canvas struct {
 func (cmd *Canvas) Execute(args []string) error {
 	slog.Debug("running canvas command")
 
-	// create a blank 600x400 RGBA image
+	// create a blank image with the given size
 	img := image.NewRGBA(image.Rect(0, 0, cmd.Size.X, cmd.Size.Y))
 
 	// set the colour
