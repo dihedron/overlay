@@ -4,14 +4,12 @@ import (
 	"log/slog"
 	"os"
 
-	"github.com/dihedron/overlay/command/base"
 	"github.com/dihedron/overlay/metadata"
 )
 
 // Version is the command that prints information about the application
 // or plugin to the console; it support both compact and verbose mode.
 type Version struct {
-	base.Command
 	// Verbose is the flag that indicates whether to print verbose information about the application.
 	Verbose bool `short:"v" long:"verbose" description:"Print verbose information about the application."`
 }
