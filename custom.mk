@@ -48,6 +48,14 @@ new-revision-release: ## create a new revision release (e.g. v1.2.3 -> v1.2.4)
 	@git tag -a $(NEW_VERSION) -m "Release version $(NEW_VERSION)"
 	@git push origin tag $(NEW_VERSION)
 
+.PHONY: test-canvas
+test-canvas: compile # create a canvas with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay canvas --size=640,480 --colour=#FF0000 --output=dist/overlay_linux_amd64_v1/out.png
+
+.PHONY: test-square
+test-square: compile # create a square with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay square --input=_test/test.jpg --point=650,100 --size=72,25 --colour=#00FF00 --output=dist/overlay_linux_amd64_v1/out.png
+
 .PHONY: test-text
 test-text: compile # overlay text on top of an image
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.png --text="HALLO, WORLD!"
