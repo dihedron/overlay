@@ -234,6 +234,9 @@ go-clean: ## clean the goreleaser dist directory
 go-purge: ## remove all cached Golang pre-built libraries
 	@go clean -x -cache
 
+#
+# run golang quality checks
+#
 .PHONY: go-quality
 go-quality: ## run golang quality checks
 	@echo -e "Performing quality checks"
@@ -365,4 +368,4 @@ go-supported-platforms: ## show supported build platforms
 .PHONY: go-how-to-tag
 go-how-to-tag: ## show how to set a tag before releaser
 	@echo "git tag -a v1.2.3 -m \"Your message here\""
-	@echo "make [go-]release"
+	@echo "git push -u origin v1.2.3"
