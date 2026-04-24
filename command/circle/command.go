@@ -13,7 +13,7 @@ type Circle struct {
 	base.InputCommand
 	base.OutputCommand
 	// Point is the position in the image where the circle will start.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the circle will be written, as an (x,y) point" optional:"true"`
+	Point base.PointF `short:"p" long:"point" description:"The coordinates where the circle will be written, as an (x,y) point" optional:"true"`
 	// // Size is the size of the square to be written to the image.
 	// Size base.Point `short:"s" long:"size" description:"The size of the square to be written to the image, as an (width,height) point" optional:"true"`
 	// Colour is the colour of the circle to be written to the image.
@@ -45,7 +45,7 @@ func (cmd *Circle) Execute(args []string) error {
 	dc.SetRGBA(float64(cmd.Colour.R), float64(cmd.Colour.G), float64(cmd.Colour.B), float64(cmd.Colour.A))
 
 	slog.Debug("drawing circle", "point", cmd.Point, "radius", cmd.Radius)
-	dc.DrawCircle(float64(cmd.Point.X), float64(cmd.Point.Y), cmd.Radius)
+	dc.DrawCircle(cmd.Point.X, cmd.Point.Y, cmd.Radius)
 
 	if cmd.Fill {
 		slog.Debug("drawing circle as fill", "colour", cmd.Colour)

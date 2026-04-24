@@ -36,3 +36,33 @@ func (p *Point) UnmarshalFlag(value string) error {
 func (p Point) MarshalFlag() (string, error) {
 	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
 }
+
+// PointF is a 2D coordinate as floats.
+type PointF struct {
+	X, Y float64
+}
+
+// UnmarshalFlag parses a string representation of a point in the format "x,y".
+func (p *PointF) UnmarshalFlag(value string) error {
+	parts := strings.Split(value, ",")
+
+	if len(parts) != 2 {
+		return errors.New("invalid format: expected two numbers separated by a ,")
+	}
+	x, err := strconv.ParseFloat(parts[0], 64)
+	if err != nil {
+		return err
+	}
+	y, err := strconv.ParseFloat(parts[1], 64)
+	if err != nil {
+		return err
+	}
+	p.X = x
+	p.Y = y
+	return nil
+}
+
+// MarshalFlag returns the string representation of a point in the format "x,y".
+func (p PointF) MarshalFlag() (string, error) {
+	return fmt.Sprintf("%g,%g", p.X, p.Y), nil
+}
