@@ -13,9 +13,9 @@ type Rectangle struct {
 	base.InputCommand
 	base.OutputCommand
 	// Point is the position in the image where the rectangle will start.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the rectangle will be written, as an (x,y) point" optional:"true"`
+	Point base.PointF `short:"p" long:"point" description:"The coordinates where the rectangle will be written, as an (x,y) point" optional:"true"`
 	// Size is the size of the rectangle to be written to the image.
-	Size base.Point `short:"s" long:"size" description:"The size of the rectangle to be written to the image, as an (width,height) point" optional:"true"`
+	Size base.PointF `short:"s" long:"size" description:"The size of the rectangle to be written to the image, as an (width,height) point" optional:"true"`
 	// Colour is the colour of the rectangle to be written to the image.
 	Colour base.Colour `short:"c" long:"colour" description:"The colour of the rectangle to be written to the image" optional:"true" default:"#000000"`
 	// Fill is whether the rectangle should be filled with the given colour.
@@ -48,12 +48,12 @@ func (cmd *Rectangle) Execute(args []string) error {
 		slog.Debug("drawing rounded rectangle", "point", cmd.Point, "size", cmd.Size, "radius", cmd.Radius)
 		// define the rounded rectangle area: (x1, y1) to (x2, y2)
 		// rounded rectangle is defined by the top-left corner and the size
-		dc.DrawRoundedRectangle(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Size.X), float64(cmd.Size.Y), float64(cmd.Radius))
+		dc.DrawRoundedRectangle(cmd.Point.X, cmd.Point.Y, cmd.Size.X, cmd.Size.Y, cmd.Radius)
 	} else {
 		slog.Debug("drawing rectangle", "point", cmd.Point, "size", cmd.Size)
 		// define the rectangle area: (x1, y1) to (x2, y2)
 		// rectangle is defined by the top-left corner and the size
-		dc.DrawRectangle(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Size.X), float64(cmd.Size.Y))
+		dc.DrawRectangle(cmd.Point.X, cmd.Point.Y, cmd.Size.X, cmd.Size.Y)
 	}
 
 	if cmd.Fill {
