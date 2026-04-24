@@ -1,18 +1,12 @@
 package text
 
 import (
-	"image"
-	"image/color"
-	"image/draw"
 	"log/slog"
-	"os"
 
 	"github.com/dihedron/overlay/command/base"
+	"github.com/gogpu/gg"
+	"github.com/gogpu/gg/text"
 	"github.com/jessevdk/go-flags"
-	"golang.org/x/image/font"
-	"golang.org/x/image/font/gofont/goregular"
-	"golang.org/x/image/font/opentype"
-	"golang.org/x/image/math/fixed"
 )
 
 // Text is the command that adds text as an overlay to an image.
@@ -42,64 +36,84 @@ func (cmd *Text) Execute(args []string) error {
 	}
 	slog.Debug("underlay image decoded", "name", cmd.Input, "width", underlay.Bounds().Dx(), "height", underlay.Bounds().Dy())
 
-	// create a new image with the same dimensions as the original
-	dst := image.NewRGBA(underlay.Bounds())
-	draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
-	slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
+	dc := gg.NewContextForImage(underlay)
+	defer dc.Close()
 
-	slog.Debug("overlaying text on the image", "text", cmd.Text)
-
-	// create the font face
-	var fnt *opentype.Font
-	if cmd.Font != "" {
-		// read the font data
-		fontData, err := os.ReadFile(string(cmd.Font))
-		if err != nil {
-			slog.Error("error reading font file", "name", cmd.Font, "error", err)
-			os.Exit(1)
-		}
-		slog.Debug("font data read", "filename", cmd.Font)
-
-		// parse the font data into a font
-		if fnt, err = opentype.Parse(fontData); err != nil {
-			slog.Error("error parsing font data", "name", cmd.Font, "error", err)
-			os.Exit(1)
-		}
-	} else {
-		slog.Debug("using default font")
-		if fnt, err = opentype.Parse(goregular.TTF); err != nil {
-			slog.Error("error parsing default font data", "name", cmd.Font, "error", err)
-			os.Exit(1)
-		}
-	}
-	slog.Debug("font parsed")
-
-	fontFace, err := opentype.NewFace(fnt, &opentype.FaceOptions{
-		Size:    float64(cmd.Size),
-		DPI:     cmd.DPI,
-		Hinting: font.HintingNone,
-	})
+	// load font
+	source, err := text.NewFontSourceFromFile(string(cmd.Font))
 	if err != nil {
-		slog.Error("error creating font face", "name", cmd.Font, "error", err)
-		os.Exit(1)
+		slog.Error("error loading font file", "name", cmd.Font, "error", err)
+		return err
 	}
+	defer source.Close()
 
-	point := fixed.Point26_6{
-		X: fixed.I(cmd.Point.X),
-		Y: fixed.I(cmd.Point.Y),
-	}
+	// render text
+	slog.Debug("overlaying text on the image", "text", cmd.Text, "point", cmd.Point, "size", cmd.Size, "font", cmd.Font)
+	dc.SetFont(source.Face(cmd.Size))
+	dc.SetRGBA(float64(cmd.Colour.R), float64(cmd.Colour.G), float64(cmd.Colour.B), float64(cmd.Colour.A))
+	dc.DrawString(cmd.Text, float64(cmd.Point.X), float64(cmd.Point.Y))
 
-	d := &font.Drawer{
-		Dst:  dst,
-		Src:  image.NewUniform(color.RGBA(cmd.Colour)),
-		Face: fontFace,
-		Dot:  point,
-	}
-	d.DrawString(cmd.Text)
-	slog.Debug("text overlaid on the image", "text", cmd.Text, "point", cmd.Point)
+	/*
+		// create a new image with the same dimensions as the original
+		dst := image.NewRGBA(underlay.Bounds())
+		draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
+		slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
+	*/
+
+	/*
+		// create the font face
+		var fnt *opentype.Font
+		if cmd.Font != "" {
+			// read the font data
+			fontData, err := os.ReadFile(string(cmd.Font))
+			if err != nil {
+				slog.Error("error reading font file", "name", cmd.Font, "error", err)
+				os.Exit(1)
+			}
+			slog.Debug("font data read", "filename", cmd.Font)
+
+			// parse the font data into a font
+			if fnt, err = opentype.Parse(fontData); err != nil {
+				slog.Error("error parsing font data", "name", cmd.Font, "error", err)
+				os.Exit(1)
+			}
+		} else {
+			slog.Debug("using default font")
+			if fnt, err = opentype.Parse(goregular.TTF); err != nil {
+				slog.Error("error parsing default font data", "name", cmd.Font, "error", err)
+				os.Exit(1)
+			}
+		}
+		slog.Debug("font parsed")
+
+		fontFace, err := opentype.NewFace(fnt, &opentype.FaceOptions{
+			Size:    float64(cmd.Size),
+			DPI:     cmd.DPI,
+			Hinting: font.HintingNone,
+		})
+		if err != nil {
+			slog.Error("error creating font face", "name", cmd.Font, "error", err)
+			os.Exit(1)
+		}
+
+		point := fixed.Point26_6{
+			X: fixed.I(cmd.Point.X),
+			Y: fixed.I(cmd.Point.Y),
+		}
+
+		d := &font.Drawer{
+			Dst:  dst,
+			Src:  image.NewUniform(color.RGBA(cmd.Colour)),
+			Face: fontFace,
+			Dot:  point,
+		}
+		d.DrawString(cmd.Text)
+		slog.Debug("text overlaid on the image", "text", cmd.Text, "point", cmd.Point)
+	*/
 
 	// write to output
-	err = cmd.WriteOutput(dst)
+	img := dc.Image()
+	err = cmd.WriteOutput(img)
 	if err != nil {
 		slog.Error("error writing output stream", "name", cmd.Output, "error", err)
 		return err
