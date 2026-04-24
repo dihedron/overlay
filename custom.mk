@@ -1,22 +1,22 @@
 # Add custom targets below...
 
 #
-# compile is the default target; it builds the 
+# compile is the default target; it builds the
 # application for the default platform (linux/amd64)
 #
 .DEFAULT_GOAL := compile
 
-.PHONY: compile 
+.PHONY: compile
 compile: go-dev ## build for the default linux/amd64 platform
 
-.PHONY: snapshot 
+.PHONY: snapshot
 snapshot: go-snapshot ## build a snapshot version for the supported platforms
 
-.PHONY: release 
+.PHONY: release
 release: go-release ## build a release version (requires a valid tag)
 
-.PHONY: clean 
-clean: ## clean the binary directory 
+.PHONY: clean
+clean: ## clean the binary directory
 	@rm -rf dist
 
 #
@@ -47,27 +47,3 @@ new-revision-release: ## create a new revision release (e.g. v1.2.3 -> v1.2.4)
 	@echo "New revision release: $(OLD_VERSION) -> $(NEW_VERSION)"
 	@git tag -a $(NEW_VERSION) -m "Release version $(NEW_VERSION)"
 	@git push origin tag $(NEW_VERSION)
-
-.PHONY: test-canvas
-test-canvas: compile # create a canvas with the given size and colour
-	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay canvas --size=640,480 --colour=#FF0000 --output=dist/overlay_linux_amd64_v1/out.png
-
-.PHONY: test-square
-test-square: compile # create a square with the given size and colour
-	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay square --input=_test/test.jpg --point=650,100 --size=72,25 --colour=#00FF00 --output=dist/overlay_linux_amd64_v1/out.png
-
-.PHONY: test-text
-test-text: compile # overlay text on top of an image
-	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.png --text="HALLO, WORLD!"
-
-.PHONY: test-image
-test-image: compile # overlay an image on top of an image
-	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay image --point=650,100 --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.jpg --image=_test/apple.png
-
-.PHONY: test-pipe
-test-pipe: compile # overlay images and text on top of an image
-	@cat _test/test.jpg | \
-	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay image --point=460,25 --image=_test/apple.png --format=jpg | \
-	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=600,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --format=jpg --text="HALLO, WORLD..." | \
-	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=700,160 --size=48 --font=_test/Economica/Economica-Regular.ttf --colour=#00FF0033 --output=dist/overlay_linux_amd64_v1/out.jpg --text="... from me!"
-

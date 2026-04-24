@@ -17,4 +17,4 @@ _APPLICATION_METADATA_PACKAGE=$$(grep "module .*" go.mod | sed 's/module //gi')/
 include help.mk
 include go.mk
 -include custom.mk
-
+-include _test/test.mk
