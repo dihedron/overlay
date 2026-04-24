@@ -12,6 +12,11 @@ test-rectangle: compile # create a rectangle with the given size and colour
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,400 --size=150,125 --colour=#FFFFFF --fill --radius=5 --output=dist/overlay_linux_amd64_v1/rounded-filled.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,500 --size=150,125 --colour=#FFFFFF --stroke=2 --radius=15 --output=dist/overlay_linux_amd64_v1/rounded-stroked.png
 
+.PHONY: test-circle
+test-circle: compile # create a circle with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay circle --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100 --output=dist/overlay_linux_amd64_v1/filled.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay circle --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100 --output=dist/overlay_linux_amd64_v1/stroked.png
+
 .PHONY: test-text
 test-text: compile # overlay text on top of an image
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.png --text="HALLO, WORLD!"

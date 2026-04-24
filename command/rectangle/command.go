@@ -12,14 +12,14 @@ import (
 type Rectangle struct {
 	base.InputCommand
 	base.OutputCommand
-	// Point is the position in the image where the square will start.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the square will be written, as an (x,y) point" optional:"true"`
-	// Size is the size of the square to be written to the image.
-	Size base.Point `short:"s" long:"size" description:"The size of the square to be written to the image, as an (width,height) point" optional:"true"`
-	// Colour is the colour of the square to be written to the image.
-	Colour base.Colour `short:"c" long:"colour" description:"The colour of the square to be written to the image" optional:"true" default:"#000000"`
-	// Fill is whether the square should be filled with the given colour.
-	Fill bool `short:"f" long:"fill" description:"Whether the square should be filled with the given colour, by default it is not" optional:"true"`
+	// Point is the position in the image where the rectangle will start.
+	Point base.Point `short:"p" long:"point" description:"The coordinates where the rectangle will be written, as an (x,y) point" optional:"true"`
+	// Size is the size of the rectangle to be written to the image.
+	Size base.Point `short:"s" long:"size" description:"The size of the rectangle to be written to the image, as an (width,height) point" optional:"true"`
+	// Colour is the colour of the rectangle to be written to the image.
+	Colour base.Colour `short:"c" long:"colour" description:"The colour of the rectangle to be written to the image" optional:"true" default:"#000000"`
+	// Fill is whether the rectangle should be filled with the given colour.
+	Fill bool `short:"f" long:"fill" description:"Whether the rectangle should be filled with the given colour, by default it is not" optional:"true"`
 	// Stroke is the width of the rectangle stroke, when fill is false.
 	Stroke float64 `short:"w" long:"stroke" description:"The width of the rectangle stroke, when fill is false" optional:"true" default:"1"`
 	// Radius defines a rounded rectangle by rounding the corners of the rectangle
@@ -68,7 +68,7 @@ func (cmd *Rectangle) Execute(args []string) error {
 		return fmt.Errorf("either --fill or --stroke must be specified")
 	}
 
-	slog.Debug("square overlaid on the image", "point", cmd.Point, "size", cmd.Size, "colour", cmd.Colour)
+	slog.Debug("rectangle overlaid on the image", "point", cmd.Point, "size", cmd.Size, "colour", cmd.Colour)
 
 	// write the image to the output stream
 	img := dc.Image()
