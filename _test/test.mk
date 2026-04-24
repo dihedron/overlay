@@ -17,6 +17,11 @@ test-circle: compile # create a circle with the given size and colour
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay circle --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100 --output=dist/overlay_linux_amd64_v1/filled.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay circle --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100 --output=dist/overlay_linux_amd64_v1/stroked.png
 
+.PHONY: test-ellipse
+test-ellipse: compile # create an ellipse with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay ellipse --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100,50 --output=dist/overlay_linux_amd64_v1/filled.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay ellipse --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100,50 --output=dist/overlay_linux_amd64_v1/stroked.png
+
 .PHONY: test-text
 test-text: compile # overlay text on top of an image
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay text --point=650,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --input=_test/test.jpg --output=dist/overlay_linux_amd64_v1/out.png --text="HALLO, WORLD!"

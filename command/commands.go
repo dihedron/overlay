@@ -3,6 +3,7 @@ package command
 import (
 	"github.com/dihedron/overlay/command/canvas"
 	"github.com/dihedron/overlay/command/circle"
+	"github.com/dihedron/overlay/command/ellipse"
 	"github.com/dihedron/overlay/command/image"
 	"github.com/dihedron/overlay/command/rectangle"
 	"github.com/dihedron/overlay/command/text"
@@ -17,6 +18,8 @@ type Commands struct {
 	Rectangle rectangle.Rectangle `command:"rectangle" alias:"r" description:"Add a rectangle as an overlay to an image." `
 	// Circle adds a circle as an overlay to an image.
 	Circle circle.Circle `command:"circle" alias:"o" description:"Add a circle as an overlay to an image." `
+	// Ellipse adds an ellipse as an overlay to an image.
+	Ellipse ellipse.Ellipse `command:"ellipse" alias:"e" description:"Add an ellipse as an overlay to an image." `
 	// Image superimposes an image as an overlay to the given image.
 	Image image.Image `command:"image" alias:"i" description:"Superimposes an image as an overlay to the given image." `
 	// Text adds text as an overlay to an image.
