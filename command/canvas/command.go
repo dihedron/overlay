@@ -11,7 +11,7 @@ import (
 type Canvas struct {
 	base.OutputCommand
 	// Size is the size of the canvas.
-	Size base.Point `short:"s" long:"size" description:"The size of the canvas, as an (width,height) pair" required:"true"`
+	Size base.Size `short:"s" long:"size" description:"The size of the canvas, as an (width,height) pair" required:"true"`
 	// Colour is the colour used to fill the canvas.
 	Colour base.Colour `short:"c" long:"colour" description:"The colour used to fill the canvas" optional:"true" default:"#FFFFFF"`
 }

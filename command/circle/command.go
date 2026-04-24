@@ -13,7 +13,7 @@ type Circle struct {
 	base.InputCommand
 	base.OutputCommand
 	// Point is the position in the image where the circle will start.
-	Point base.PointF `short:"p" long:"point" description:"The coordinates where the circle will be written, as an (x,y) point" optional:"true"`
+	Point base.Point `short:"p" long:"point" description:"The coordinates where the circle will be written, as an (x,y) point" optional:"true"`
 	// // Size is the size of the square to be written to the image.
 	// Size base.Point `short:"s" long:"size" description:"The size of the square to be written to the image, as an (width,height) point" optional:"true"`
 	// Colour is the colour of the circle to be written to the image.

@@ -13,9 +13,9 @@ type Rectangle struct {
 	base.InputCommand
 	base.OutputCommand
 	// Point is the position in the image where the rectangle will start.
-	Point base.PointF `short:"p" long:"point" description:"The coordinates where the rectangle will be written, as an (x,y) point" optional:"true"`
+	Point base.Point `short:"p" long:"point" description:"The coordinates where the rectangle will be written, as an (x,y) point" optional:"true"`
 	// Size is the size of the rectangle to be written to the image.
-	Size base.PointF `short:"s" long:"size" description:"The size of the rectangle to be written to the image, as an (width,height) point" optional:"true"`
+	Size base.Point `short:"s" long:"size" description:"The size of the rectangle to be written to the image, as an (width,height) point" optional:"true"`
 	// Colour is the colour of the rectangle to be written to the image.
 	Colour base.Colour `short:"c" long:"colour" description:"The colour of the rectangle to be written to the image" optional:"true" default:"#000000"`
 	// Fill is whether the rectangle should be filled with the given colour.

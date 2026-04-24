@@ -7,13 +7,13 @@ import (
 	"strings"
 )
 
-// Point is a 2D coordinate.
-type Point struct {
+// Size is a 2D coordinate.
+type Size struct {
 	X, Y int
 }
 
-// UnmarshalFlag parses a string representation of a point in the format "x,y".
-func (p *Point) UnmarshalFlag(value string) error {
+// UnmarshalFlag parses a string representation of a size in the format "x,y".
+func (p *Size) UnmarshalFlag(value string) error {
 	parts := strings.Split(value, ",")
 
 	if len(parts) != 2 {
@@ -32,18 +32,18 @@ func (p *Point) UnmarshalFlag(value string) error {
 	return nil
 }
 
-// MarshalFlag returns the string representation of a point in the format "x,y".
-func (p Point) MarshalFlag() (string, error) {
+// MarshalFlag returns the string representation of a size in the format "x,y".
+func (p Size) MarshalFlag() (string, error) {
 	return fmt.Sprintf("%d,%d", p.X, p.Y), nil
 }
 
-// PointF is a 2D coordinate as floats.
-type PointF struct {
+// Point is a 2D coordinate as floats.
+type Point struct {
 	X, Y float64
 }
 
 // UnmarshalFlag parses a string representation of a point in the format "x,y".
-func (p *PointF) UnmarshalFlag(value string) error {
+func (p *Point) UnmarshalFlag(value string) error {
 	parts := strings.Split(value, ",")
 
 	if len(parts) != 2 {
@@ -63,6 +63,6 @@ func (p *PointF) UnmarshalFlag(value string) error {
 }
 
 // MarshalFlag returns the string representation of a point in the format "x,y".
-func (p PointF) MarshalFlag() (string, error) {
+func (p Point) MarshalFlag() (string, error) {
 	return fmt.Sprintf("%g,%g", p.X, p.Y), nil
 }

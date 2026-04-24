@@ -16,7 +16,7 @@ type Text struct {
 	// Text is the text to write as an overlay to the image.
 	Text string `short:"t" long:"text" description:"The text to add as an overlay to the given image" optional:"true"`
 	// Point is the position in the image where the text will start.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the text/image will be written, as an (x,y) point" optional:"true"`
+	Point base.Point `short:"p" long:"point" description:"The coordinates where the text will be written, as an (x,y) point" optional:"true"`
 	// Font is the font to use for writing to the image.
 	Font flags.Filename `short:"f" long:"font" description:"The name of the font to be used for writing" optional:"true"`
 	// Colour is the colour of the font to be used for writing to the image.
@@ -51,65 +51,7 @@ func (cmd *Text) Execute(args []string) error {
 	slog.Debug("overlaying text on the image", "text", cmd.Text, "point", cmd.Point, "size", cmd.Size, "font", cmd.Font)
 	dc.SetFont(source.Face(cmd.Size))
 	dc.SetRGBA(float64(cmd.Colour.R), float64(cmd.Colour.G), float64(cmd.Colour.B), float64(cmd.Colour.A))
-	dc.DrawString(cmd.Text, float64(cmd.Point.X), float64(cmd.Point.Y))
-
-	/*
-		// create a new image with the same dimensions as the original
-		dst := image.NewRGBA(underlay.Bounds())
-		draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
-		slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
-	*/
-
-	/*
-		// create the font face
-		var fnt *opentype.Font
-		if cmd.Font != "" {
-			// read the font data
-			fontData, err := os.ReadFile(string(cmd.Font))
-			if err != nil {
-				slog.Error("error reading font file", "name", cmd.Font, "error", err)
-				os.Exit(1)
-			}
-			slog.Debug("font data read", "filename", cmd.Font)
-
-			// parse the font data into a font
-			if fnt, err = opentype.Parse(fontData); err != nil {
-				slog.Error("error parsing font data", "name", cmd.Font, "error", err)
-				os.Exit(1)
-			}
-		} else {
-			slog.Debug("using default font")
-			if fnt, err = opentype.Parse(goregular.TTF); err != nil {
-				slog.Error("error parsing default font data", "name", cmd.Font, "error", err)
-				os.Exit(1)
-			}
-		}
-		slog.Debug("font parsed")
-
-		fontFace, err := opentype.NewFace(fnt, &opentype.FaceOptions{
-			Size:    float64(cmd.Size),
-			DPI:     cmd.DPI,
-			Hinting: font.HintingNone,
-		})
-		if err != nil {
-			slog.Error("error creating font face", "name", cmd.Font, "error", err)
-			os.Exit(1)
-		}
-
-		point := fixed.Point26_6{
-			X: fixed.I(cmd.Point.X),
-			Y: fixed.I(cmd.Point.Y),
-		}
-
-		d := &font.Drawer{
-			Dst:  dst,
-			Src:  image.NewUniform(color.RGBA(cmd.Colour)),
-			Face: fontFace,
-			Dot:  point,
-		}
-		d.DrawString(cmd.Text)
-		slog.Debug("text overlaid on the image", "text", cmd.Text, "point", cmd.Point)
-	*/
+	dc.DrawString(cmd.Text, cmd.Point.X, cmd.Point.Y)
 
 	// write to output
 	img := dc.Image()

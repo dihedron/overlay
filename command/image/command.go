@@ -18,7 +18,7 @@ type Image struct {
 	// Image is the image to superimpose as an overlay to the image.
 	Image flags.Filename `short:"y" long:"image" description:"The image to superimpose as an overlay to the given image" optional:"true"`
 	// Point is the position in the image where the image will be superimposed.
-	Point base.PointF `short:"p" long:"point" description:"The coordinates where the image will be superimposed, as an (x,y) point" optional:"true"`
+	Point base.Point `short:"p" long:"point" description:"The coordinates where the image will be superimposed, as an (x,y) point" optional:"true"`
 }
 
 // Execute is the real implementation of the Image command.
