@@ -10,7 +10,7 @@ test-rectangle: compile # create a rectangle with the given size and colour
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,200 --size=150,125 --colour=#00FF00 --stroke=10 --output=dist/overlay_linux_amd64_v1/stroked.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,300 --size=150,125 --colour=#FFFFFF --output=dist/overlay_linux_amd64_v1/default.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,400 --size=150,125 --colour=#FFFFFF --fill --radius=5 --output=dist/overlay_linux_amd64_v1/rounded-filled.png
-	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,500 --size=150,125 --colour=#FFFFFF --stroke=10 --radius=5 --output=dist/overlay_linux_amd64_v1/rounded-stroked.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay rectangle --input=_test/test.jpg --point=650,500 --size=150,125 --colour=#FFFFFF --stroke=2 --radius=15 --output=dist/overlay_linux_amd64_v1/rounded-stroked.png
 
 .PHONY: test-text
 test-text: compile # overlay text on top of an image
