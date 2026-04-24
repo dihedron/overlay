@@ -1,6 +1,7 @@
 package rectangle
 
 import (
+	"fmt"
 	"log/slog"
 
 	"github.com/dihedron/overlay/command/base"
@@ -21,6 +22,8 @@ type Rectangle struct {
 	Fill bool `short:"f" long:"fill" description:"Whether the square should be filled with the given colour, by default it is not" optional:"true"`
 	// Stroke is the width of the rectangle stroke, when fill is false.
 	Stroke float64 `short:"w" long:"stroke" description:"The width of the rectangle stroke, when fill is false" optional:"true" default:"1"`
+	// Radius defines a rounded rectangle by rounding the corners of the rectangle
+	Radius float64 `short:"r" long:"radius" description:"The radius of the rectangle corners" optional:"true" default:"0"`
 }
 
 // Execute is the real implementation of the Rectangle command.
@@ -34,44 +37,36 @@ func (cmd *Rectangle) Execute(args []string) error {
 		return err
 	}
 
+	// create the device context with the underlay image
 	dc := gg.NewContextForImage(underlay)
 	defer dc.Close()
 
+	// set the colour
 	dc.SetRGBA(float64(cmd.Colour.R), float64(cmd.Colour.G), float64(cmd.Colour.B), float64(cmd.Colour.A))
-	dc.DrawRectangle(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Size.X), float64(cmd.Size.Y))
+
+	if cmd.Radius > 0 {
+		slog.Debug("drawing rounded rectangle", "point", cmd.Point, "size", cmd.Size, "radius", cmd.Radius)
+		// define the rounded rectangle area: (x1, y1) to (x2, y2)
+		// rounded rectangle is defined by the top-left corner and the size
+		dc.DrawRoundedRectangle(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Size.X), float64(cmd.Size.Y), float64(cmd.Radius))
+	} else {
+		slog.Debug("drawing rectangle", "point", cmd.Point, "size", cmd.Size)
+		// define the rectangle area: (x1, y1) to (x2, y2)
+		// rectangle is defined by the top-left corner and the size
+		dc.DrawRectangle(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Size.X), float64(cmd.Size.Y))
+	}
 
 	if cmd.Fill {
 		slog.Debug("drawing rectangle as fill", "colour", cmd.Colour)
 		dc.Fill()
-	} else {
+	} else if cmd.Stroke > 0 {
 		slog.Debug("drawing rectangle as stroke", "width", cmd.Stroke)
 		dc.SetLineWidth(cmd.Stroke)
 		dc.Stroke()
+	} else {
+		slog.Error("either --fill or --stroke must be specified")
+		return fmt.Errorf("either --fill or --stroke must be specified")
 	}
-
-	/*
-		// create a new image with the same dimensions as the original
-		dst := image.NewRGBA(underlay.Bounds())
-		draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
-		slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
-
-		slog.Debug("overlaying square on the image", "point", cmd.Point, "size", cmd.Size, "colour", cmd.Colour)
-
-		// set the colour
-		background := color.RGBA{R: cmd.Colour.R, G: cmd.Colour.G, B: cmd.Colour.B, A: cmd.Colour.A}
-
-		// define the rectangle area: (x1, y1) to (x2, y2)
-		squareRect := image.Rect(cmd.Point.X, cmd.Point.Y, cmd.Point.X+cmd.Size.X, cmd.Point.Y+cmd.Size.Y)
-
-		// draw the square on top of the image
-		if cmd.Fill {
-			// draw the filled square
-			draw.Draw(dst, squareRect, &image.Uniform{background}, image.Point{}, draw.Src)
-		} else {
-			// draw the outline of the square
-			draw.Draw(dst, squareRect, &image.Uniform{background}, image.Point{}, draw.Over)
-		}
-	*/
 
 	slog.Debug("square overlaid on the image", "point", cmd.Point, "size", cmd.Size, "colour", cmd.Colour)
 
@@ -82,15 +77,6 @@ func (cmd *Rectangle) Execute(args []string) error {
 		return err
 	}
 	slog.Debug("image correctly encoded", "filename", cmd.Output, "format", cmd.Format)
-
-	/*
-		// encode the output image
-		if err := cmd.WriteOutput(dst); err != nil {
-			slog.Error("error writing output stream", "name", cmd.Output, "error", err)
-			return err
-		}
-		slog.Debug("image correctly encoded", "filename", cmd.Output, "format", cmd.Format)
-	*/
 
 	return nil
 }
