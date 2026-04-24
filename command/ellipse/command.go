@@ -13,7 +13,7 @@ type Ellipse struct {
 	base.InputCommand
 	base.OutputCommand
 	// Point is the position in the image where the ellipse will start.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the ellipse will be written, as an (x,y) point" optional:"true"`
+	Point base.PointF `short:"p" long:"point" description:"The coordinates where the ellipse will be written, as an (x,y) point" optional:"true"`
 	// Colour is the colour of the ellipse to be written to the image.
 	Colour base.Colour `short:"c" long:"colour" description:"The colour of the ellipse to be written to the image" optional:"true" default:"#000000"`
 	// Fill is whether the ellipse should be filled with the given colour.
@@ -21,7 +21,7 @@ type Ellipse struct {
 	// Stroke is the width of the ellipse stroke, when fill is false.
 	Stroke float64 `short:"w" long:"stroke" description:"The width of the ellipse stroke, when fill is false" optional:"true" default:"1"`
 	// Radius defines the radii (rx and ry) of the ellipse
-	Radius base.Point `short:"r" long:"radius" description:"The radii of the ellipse" optional:"true" default:"10,10"`
+	Radius base.PointF `short:"r" long:"radius" description:"The radii of the ellipse" optional:"true" default:"10,10"`
 }
 
 // Execute is the real implementation of the Rectangle command.
@@ -42,7 +42,7 @@ func (cmd *Ellipse) Execute(args []string) error {
 	// set the colour
 	dc.SetRGBA(float64(cmd.Colour.R), float64(cmd.Colour.G), float64(cmd.Colour.B), float64(cmd.Colour.A))
 
-	dc.DrawEllipse(float64(cmd.Point.X), float64(cmd.Point.Y), float64(cmd.Radius.X), float64(cmd.Radius.Y))
+	dc.DrawEllipse(cmd.Point.X, cmd.Point.Y, cmd.Radius.X, cmd.Radius.Y)
 
 	if cmd.Fill {
 		slog.Debug("drawing ellipse as fill", "colour", cmd.Colour)
