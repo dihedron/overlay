@@ -1,9 +1,6 @@
 package canvas
 
 import (
-	"image"
-	"image/color"
-	"image/draw"
 	"log/slog"
 
 	"github.com/dihedron/overlay/command/base"
@@ -19,6 +16,7 @@ type Canvas struct {
 	Colour base.Colour `short:"c" long:"colour" description:"The colour used to fill the canvas" optional:"true" default:"#FFFFFF"`
 }
 
+// Execute is the real implementation of the Canvas command.
 func (cmd *Canvas) Execute(args []string) error {
 	slog.Debug("running canvas command")
 
@@ -30,29 +28,6 @@ func (cmd *Canvas) Execute(args []string) error {
 
 	// write the image to the output stream
 	img := dc.Image()
-	if err := cmd.WriteOutput(img); err != nil {
-		slog.Error("error writing output stream", "name", cmd.Output, "error", err)
-		return err
-	}
-	slog.Debug("image correctly encoded", "filename", cmd.Output, "format", cmd.Format)
-
-	return nil
-}
-
-// Execute is the real implementation of the Canvas command.
-func (cmd *Canvas) Execute2(args []string) error {
-	slog.Debug("running canvas command")
-
-	// create a blank image with the given size
-	img := image.NewRGBA(image.Rect(0, 0, cmd.Size.X, cmd.Size.Y))
-
-	// set the colour
-	background := color.RGBA{R: cmd.Colour.R, G: cmd.Colour.G, B: cmd.Colour.B, A: cmd.Colour.A}
-
-	// fill the image with the colour
-	draw.Draw(img, img.Bounds(), &image.Uniform{background}, image.Point{}, draw.Src)
-
-	// write the image to the output stream
 	if err := cmd.WriteOutput(img); err != nil {
 		slog.Error("error writing output stream", "name", cmd.Output, "error", err)
 		return err

@@ -1,13 +1,13 @@
 package image
 
 import (
-	"fmt"
+	"errors"
 	"image"
-	"image/draw"
 	"log/slog"
 	"os"
 
 	"github.com/dihedron/overlay/command/base"
+	"github.com/gogpu/gg"
 	"github.com/jessevdk/go-flags"
 )
 
@@ -33,11 +33,6 @@ func (cmd *Image) Execute(args []string) error {
 	}
 	slog.Debug("underlay image decoded", "name", cmd.Input, "width", underlay.Bounds().Dx(), "height", underlay.Bounds().Dy())
 
-	// create a new image with the same dimensions as the original
-	dst := image.NewRGBA(underlay.Bounds())
-	draw.Draw(dst, dst.Bounds(), underlay, image.Point{0, 0}, draw.Src)
-	slog.Debug("image copied to destination context", "width", dst.Bounds().Dx(), "height", dst.Bounds().Dy())
-
 	// open the overlay image file
 	slog.Debug("reading overlay from file", "name", cmd.Image)
 	var f *os.File
@@ -57,16 +52,21 @@ func (cmd *Image) Execute(args []string) error {
 
 	// check if the overlay image is larger than the underlay image
 	if overlay.Bounds().Dx() > underlay.Bounds().Dx() || overlay.Bounds().Dy() > underlay.Bounds().Dy() {
-		fmt.Fprintf(os.Stderr, "Overlay image is larger than the underlay image\n")
 		slog.Error("overlay image is larger than the underlay image", "name", cmd.Image)
-		os.Exit(1)
+		return errors.New("overlay image is larger than the underlay image")
 	}
 	slog.Debug("overlay image is smaller than the underlay image", "name", cmd.Image)
 
-	//combine the image
-	draw.Draw(dst, overlay.Bounds().Add(image.Point(cmd.Point)), overlay, image.Point{0, 0}, draw.Over)
+	// create the device context with the underlay image
+	dc := gg.NewContextForImage(underlay)
+	defer dc.Close()
 
-	if err := cmd.WriteOutput(dst); err != nil {
+	// copy the overlay image on the underlay image at the given point
+	dc.DrawImage(gg.ImageBufFromImage(overlay), float64(cmd.Point.X), float64(cmd.Point.Y))
+
+	// write the result to the output stream
+	img := dc.Image()
+	if err := cmd.WriteOutput(img); err != nil {
 		slog.Error("error writing output stream", "name", cmd.Output, "error", err)
 		return err
 	}
