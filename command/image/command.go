@@ -18,7 +18,7 @@ type Image struct {
 	// Image is the image to superimpose as an overlay to the image.
 	Image flags.Filename `short:"y" long:"image" description:"The image to superimpose as an overlay to the given image" optional:"true"`
 	// Point is the position in the image where the image will be superimposed.
-	Point base.Point `short:"p" long:"point" description:"The coordinates where the image will be superimposed, as an (x,y) point" optional:"true"`
+	Point base.PointF `short:"p" long:"point" description:"The coordinates where the image will be superimposed, as an (x,y) point" optional:"true"`
 }
 
 // Execute is the real implementation of the Image command.
@@ -62,7 +62,7 @@ func (cmd *Image) Execute(args []string) error {
 	defer dc.Close()
 
 	// copy the overlay image on the underlay image at the given point
-	dc.DrawImage(gg.ImageBufFromImage(overlay), float64(cmd.Point.X), float64(cmd.Point.Y))
+	dc.DrawImage(gg.ImageBufFromImage(overlay), cmd.Point.X, cmd.Point.Y)
 
 	// write the result to the output stream
 	img := dc.Image()
