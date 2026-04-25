@@ -3,6 +3,7 @@ module github.com/dihedron/overlay
 go 1.26
 
 require (
+	github.com/anthonynsimon/bild v0.15.0
 	github.com/gogpu/gg v0.43.1
 	github.com/jessevdk/go-flags v1.6.1
 	github.com/joho/godotenv v1.5.1
