@@ -17,7 +17,16 @@ test-circle: compile # create a circle with the given size and colour
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw circle --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100 --output=dist/overlay_linux_amd64_v1/filled.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw circle --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100 --output=dist/overlay_linux_amd64_v1/stroked.png
 
-.PHONY: test-ellipse
+.PHONY: test-circular-arc
+test-circular-arc: compile # create a circular arc with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw circular-arc --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100 --angle=0,90 --output=dist/overlay_linux_amd64_v1/circular-arc-90-degrees.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw circular-arc --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100 --angle=0,270 --output=dist/overlay_linux_amd64_v1/circular-arc-270-degrees.png
+
+.PHONY: test-elliptical-arc
+test-elliptical-arc: compile # create an elliptical arc with the given size and colour
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw elliptical-arc --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100,50 --angle=0,90 --output=dist/overlay_linux_amd64_v1/elliptical-arc-90-degrees.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw elliptical-arc --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100,50 --angle=0,270 --output=dist/overlay_linux_amd64_v1/elliptical-arc-270-degrees.png
+
 test-ellipse: compile # create an ellipse with the given size and colour
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw ellipse --input=_test/test.jpg --point=650,200 --colour=#FF0000 --fill --radius=100,50 --output=dist/overlay_linux_amd64_v1/filled.png
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw ellipse --input=_test/test.jpg --point=650,200 --colour=#00FF00 --stroke=10 --radius=100,50 --output=dist/overlay_linux_amd64_v1/stroked.png
