@@ -16,8 +16,8 @@ type Rotate struct {
 	Angle float64 `short:"a" long:"angle" description:"The angle in degrees to rotate the image" optional:"true" default:"90"`
 	// Pivot is the point around which the image will be rotated.
 	Pivot base.Size `short:"p" long:"pivot" description:"The point around which the image will be rotated, as an (x,y) point" optional:"true"`
-	// Resize determines whether the output image should be resized to fit the rotated image.
-	Resize bool `short:"r" long:"resize" description:"Whether the output image should be resized to fit the rotated image" optional:"true"`
+	// ResizeBounds determines whether the output image should be resized to fit the rotated image.
+	ResizeBounds bool `short:"r" long:"resize-bounds" description:"Whether the output image should be resized to fit the rotated image" optional:"true"`
 }
 
 // Execute is the real implementation of the Rotate command.
@@ -31,12 +31,12 @@ func (cmd *Rotate) Execute(args []string) error {
 	}
 
 	opts := &transform.RotationOptions{
-		ResizeBounds: cmd.Resize,
+		ResizeBounds: cmd.ResizeBounds,
 		Pivot:        &image.Point{X: cmd.Pivot.X, Y: cmd.Pivot.Y},
 	}
 
 	result := transform.Rotate(img, cmd.Angle, opts)
-	slog.Debug("image rotated", "angle", cmd.Angle, "pivot", cmd.Pivot, "resize", cmd.Resize)
+	slog.Debug("image rotated", "angle", cmd.Angle, "pivot", cmd.Pivot, "resize", cmd.ResizeBounds)
 
 	if err := cmd.WriteOutput(result); err != nil {
 		slog.Error("error writing output stream", "name", cmd.Output, "error", err)

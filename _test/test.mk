@@ -50,3 +50,8 @@ test-draw-pipeline: compile # overlay images and text on top of an image
 .PHONY: test-transform-rotate
 test-transform-rotate: compile # rotate the image
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay transform rotate --input=_test/test.jpg --angle=45 --pivot=10,10 --resize --output=dist/overlay_linux_amd64_v1/rotated-res.png
+
+.PHONY: test-transform-zoom
+test-transform-zoom: compile # zoom the image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay transform zoom --input=_test/test.jpg --factor=2.0 --pivot=10,10 --output=dist/overlay_linux_amd64_v1/zoomed-in.png
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay transform zoom --input=_test/test.jpg --factor=0.5 --pivot=10,10 --output=dist/overlay_linux_amd64_v1/zoomed-out.png
