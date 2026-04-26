@@ -10,7 +10,7 @@ import (
 	"github.com/dihedron/overlay/command/draw/text"
 )
 
-// Commands is the set of root command groups.
+// Commands is the set of root draw command groups.
 type Commands struct {
 	// Canvas creates a new image with the given size and colour.
 	Canvas canvas.Canvas `command:"canvas" alias:"c" description:"Create a new image with the given size and colour." `

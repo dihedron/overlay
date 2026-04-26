@@ -47,6 +47,26 @@ test-draw-pipeline: compile # overlay images and text on top of an image
 	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw text --point=600,100 --size=72 --font=_test/Economica/Economica-Regular.ttf --colour=#FFFFFF --format=jpg --text="HALLO, WORLD..." | \
 	OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay draw text --point=700,160 --size=48 --font=_test/Economica/Economica-Regular.ttf --colour=#00FF0033 --output=dist/overlay_linux_amd64_v1/out.jpg --text="... from me!"
 
+.PHONY: test-info-height
+test-info-height: compile # get the height of an image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay info height --input=_test/test.jpg
+
+.PHONY: test-info-width
+test-info-width: compile # get the width of an image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay info width --input=_test/test.jpg
+
+.PHONY: test-info-size
+test-info-size: compile # get the size of an image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay info size --input=_test/test.jpg
+
+.PHONY: test-info-sample
+test-info-sample: compile # get the color of a pixel in an image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay info sample --input=_test/test.jpg --point=485,323
+
+.PHONY: test-transform-crop
+test-transform-crop: compile # crop an image
+	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay transform crop --input=_test/test.jpg --rectangle=0,0,640,480 --output=dist/overlay_linux_amd64_v1/cropped.png
+
 .PHONY: test-transform-rotate
 test-transform-rotate: compile # rotate the image
 	@OVERLAY_LOG_LEVEL=d dist/overlay_linux_amd64_v1/overlay transform rotate --input=_test/test.jpg --angle=45 --pivot=10,10 --resize --output=dist/overlay_linux_amd64_v1/rotated-res.png
